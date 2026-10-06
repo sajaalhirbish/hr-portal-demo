@@ -22,5 +22,6 @@ try {
     // Make dates read and write as 2026-10-20, like in MySQL
     $pdo->exec("ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD'");
 } catch (PDOException $e) {
-    die("Database connection failed: " . $e->getMessage());
+    echo "Database connection failed: " . $e->getMessage();
+    exit(1);   // non-zero exit code, so tests and pipelines notice the failure
 }
