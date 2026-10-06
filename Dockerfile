@@ -20,3 +20,7 @@ RUN mkdir -p /opt/oracle && cd /opt/oracle \
 # The PHP extension that lets PDO talk to Oracle
 RUN docker-php-ext-configure pdo_oci --with-pdo-oci=instantclient,/opt/oracle/instantclient \
     && docker-php-ext-install pdo_oci
+
+# Put the application code inside the image so it can run by itself on any server.
+# (On your laptop, "docker run -v" replaces this folder, so your edits still show live.)
+COPY . /var/www/html/
