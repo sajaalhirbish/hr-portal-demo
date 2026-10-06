@@ -1,10 +1,14 @@
 <?php
 // Database settings (XAMPP defaults)
-$host = 'localhost';
-$dbname = 'hr_db';
-$username = 'root';
-$password = '';   // XAMPP's root user has no password by default
+   // Settings come from environment variables (servers) or config.local.php (your laptop)
+   $configFile = __DIR__ . '/config.local.php';
+   $cfg = file_exists($configFile) ? require $configFile : [];
 
+   $host     = getenv('DB_HOST') ?: ($cfg['db_host'] ?? 'localhost');
+   $dbname   = getenv('DB_NAME') ?: ($cfg['db_name'] ?? 'hr_db');
+   $username = getenv('DB_USER') ?: ($cfg['db_user'] ?? 'root');
+   $password = getenv('DB_PASS') !== false ? getenv('DB_PASS') : ($cfg['db_pass'] ?? '');
+   
 try {
     // PDO is PHP's safe, modern way to talk to MySQL
     $pdo = new PDO(
