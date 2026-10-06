@@ -1,8 +1,8 @@
-   <?php
-   return [
-       'db_host' => 'localhost',
-       'db_port' => 3306,
-       'db_name' => 'hr_db',
-       'db_user' => 'root',
-       'db_pass' => '',
-   ];
+<?php
+return [
+    'db_host' => 'localhost',
+    'db_port' => 1521,
+    'db_name' => 'FREEPDB1',
+    'db_user' => 'hr_app',
+    'db_pass' => '',
+];
