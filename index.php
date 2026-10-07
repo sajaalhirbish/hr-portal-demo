@@ -10,8 +10,7 @@ $onLeave = $pdo->query("SELECT COUNT(*) FROM employees WHERE status = 'On Leave'
 
 $newHires = $pdo->query(
     "SELECT COUNT(*) FROM employees
-     WHERE MONTH(joining_date) = MONTH(CURDATE())
-       AND YEAR(joining_date) = YEAR(CURDATE())"
+        WHERE TRUNC(joining_date, 'MM') = TRUNC(SYSDATE, 'MM')"
 )->fetchColumn();
 
 $pendingLeaves = $pdo->query("SELECT COUNT(*) FROM leave_requests WHERE status = 'Pending'")->fetchColumn();

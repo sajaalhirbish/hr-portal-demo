@@ -25,9 +25,9 @@ $allowance = ['Annual' => 20, 'Sick' => 10];
 // Days of APPROVED leave taken this year, per leave type.
 // DATEDIFF gives the gap between two dates; +1 so both the first and last day count.
 $stmt = $pdo->prepare(
-    "SELECT leave_type, SUM(DATEDIFF(end_date, start_date) + 1) AS days
+    "SELECT leave_type, SUM(end_date - start_date + 1) AS days
      FROM leave_requests
-     WHERE employee_id = ? AND status = 'Approved' AND YEAR(start_date) = YEAR(CURDATE())
+     WHERE employee_id = ? AND status = 'Approved' AND EXTRACT(YEAR FROM start_date) = EXTRACT(YEAR FROM SYSDATE)
      GROUP BY leave_type"
 );
 $stmt->execute([$id]);
@@ -36,7 +36,7 @@ $used = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);   // e.g. ['Annual' => 10, 'Sick' 
 // Full leave history for this employee, newest first
 $stmt = $pdo->prepare(
     "SELECT leave_type, start_date, end_date, status,
-            DATEDIFF(end_date, start_date) + 1 AS days
+        (end_date - start_date) + 1 AS days
      FROM leave_requests
      WHERE employee_id = ?
      ORDER BY start_date DESC"

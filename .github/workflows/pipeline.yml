@@ -1,0 +1,84 @@
+name: HR Portal pipeline
+
+on:
+  pull_request:          # every pull request is checked before it can be merged
+  push:
+    branches: [main]     # every merge to main is tested and then deployed
+
+jobs:
+  # ---------------------------------------------------------------
+  # 1. BUILD AND TEST: runs on every pull request and every merge
+  # ---------------------------------------------------------------
+  test:
+    name: Build and test
+    runs-on: ubuntu-latest
+
+    # A throwaway Oracle database that exists only while this job runs
+    services:
+      oracle:
+        image: gvenzl/oracle-free:slim
+        env:
+          ORACLE_PASSWORD: ci_admin_pass
+          APP_USER: hr_app
+          APP_USER_PASSWORD: ci_app_pass
+        ports:
+          - 1521:1521
+        options: >-
+          --health-cmd healthcheck.sh
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 30
+
+    env:
+      DB_HOST: localhost
+      DB_PORT: "1521"
+      DB_NAME: FREEPDB1
+      DB_USER: hr_app
+      DB_PASS: ci_app_pass
+
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v4
+
+      - name: Build the application image
+        run: docker build -t hr-portal .
+
+      - name: Create the database from the SQL scripts
+        run: docker run --rm --network host -e DB_HOST -e DB_PORT -e DB_NAME -e DB_USER -e DB_PASS hr-portal php tests/setup_db.php
+
+      - name: Check PHP syntax
+        run: docker run --rm hr-portal php tests/lint.php
+
+      - name: Run automated tests
+        run: docker run --rm --network host -e DB_HOST -e DB_PORT -e DB_NAME -e DB_USER -e DB_PASS hr-portal php tests/run_tests.php
+
+  # ---------------------------------------------------------------
+  # 2. DEPLOY TO TEST: automatic, only after a merge to main
+  # ---------------------------------------------------------------
+  deploy-test:
+    name: Deploy to TEST server
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: test
+    steps:
+      - name: Deploy
+        run: |
+          echo "PLACEHOLDER: the real commands come from the company's IT/DevOps team."
+          echo "Typical steps: push the image to a registry, connect to the test server,"
+          echo "restart the app, using the TEST database settings stored as secrets."
+
+  # ---------------------------------------------------------------
+  # 3. DEPLOY TO LIVE: waits until a person approves it
+  # ---------------------------------------------------------------
+  deploy-production:
+    name: Deploy to LIVE server
+    needs: deploy-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production    # the approval rule is configured in the repository settings
+    steps:
+      - name: Deploy
+        run: |
+          echo "PLACEHOLDER: same as TEST, but with the LIVE (production Oracle) settings."
+          echo "Never run tests/setup_db.php here: it creates demo data."

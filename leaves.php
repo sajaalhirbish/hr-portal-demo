@@ -16,7 +16,7 @@ foreach ($pdo->query("SELECT status, COUNT(*) AS n FROM leave_requests GROUP BY 
 
 // Load the requests with the employee name and department
 $sql = "SELECT l.id, l.leave_type, l.start_date, l.end_date, l.status,
-               DATEDIFF(l.end_date, l.start_date) + 1 AS days,
+               (l.end_date - l.start_date) + 1 AS days,
                e.id AS employee_id, e.full_name, d.name AS department
         FROM leave_requests l
         JOIN employees e ON l.employee_id = e.id
@@ -28,7 +28,7 @@ if ($filter !== '') {
     $params[] = $filter;
 }
 // Pending requests first, so HR sees what needs action
-$sql .= " ORDER BY FIELD(l.status, 'Pending', 'Approved', 'Rejected'), l.start_date";
+$sql .= " ORDER BY CASE l.status WHEN 'Pending' THEN 1 WHEN 'Approved' THEN 2 ELSE 3 END, l.start_date";
 
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
